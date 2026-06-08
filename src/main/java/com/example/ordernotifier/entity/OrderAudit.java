@@ -1,4 +1,4 @@
-package com.example.OrderNotifier.entity;
+package com.example.ordernotifier.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

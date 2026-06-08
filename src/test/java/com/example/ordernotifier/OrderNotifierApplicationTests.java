@@ -1,4 +1,4 @@
-package com.example.OrderNotifier;
+package com.example.ordernotifier;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
