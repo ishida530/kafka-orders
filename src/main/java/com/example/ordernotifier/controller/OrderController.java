@@ -1,7 +1,9 @@
 package com.example.ordernotifier.controller;
 
+import com.example.ordernotifier.dto.OrderEvent;
 import com.example.ordernotifier.dto.OrderRequest;
 import com.example.ordernotifier.entity.OrderAudit;
+import com.example.ordernotifier.kafka.OrderEventProducer;
 import com.example.ordernotifier.repository.OrderAuditRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,7 @@ import javax.validation.Valid;
 public class OrderController {
 
     private final OrderAuditRepository orderAuditRepository;
+    private final OrderEventProducer orderEventProducer;
 
     @PostMapping
     public ResponseEntity<String> receiveOrder(@Valid @RequestBody OrderRequest request) {
@@ -28,7 +31,17 @@ public class OrderController {
                 request.getStatusCode()
         );
         orderAuditRepository.save(audit);
-        log.info("Order received and saved: {}", request.getTrackingNumber());
+
+        OrderEvent event = new OrderEvent(
+                audit.getId(),
+                audit.getTrackingNumber(),
+                audit.getRecipientEmail(),
+                audit.getRecipientCountryCode(),
+                audit.getSenderCountryCode(),
+                audit.getStatusCode(),
+                audit.getReceivedAt()
+        );
+        orderEventProducer.send(event);
 
         return ResponseEntity.accepted().body("Order accepted");
     }
