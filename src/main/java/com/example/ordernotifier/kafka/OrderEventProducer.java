@@ -13,7 +13,7 @@ public class OrderEventProducer {
 
     private static final String TOPIC = "order-events";
 
-    private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public void send(OrderEvent event) {
         kafkaTemplate.send(TOPIC, event.getTrackingNumber(), event);
