@@ -5,8 +5,10 @@ import com.example.ordernotifier.dto.OrderRequest;
 import com.example.ordernotifier.entity.OrderAudit;
 import com.example.ordernotifier.kafka.OrderEventProducer;
 import com.example.ordernotifier.repository.OrderAuditRepository;
+import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +23,9 @@ public class OrderController {
     private final OrderAuditRepository orderAuditRepository;
     private final OrderEventProducer orderEventProducer;
 
+    @Qualifier("apiBucket")
+    private final Bucket apiBucket;
+
     @PostMapping
     public ResponseEntity<String> receiveOrder(@Valid @RequestBody OrderRequest request) {
         OrderAudit audit = new OrderAudit(
@@ -30,6 +35,12 @@ public class OrderController {
                 request.getSenderCountryCode(),
                 request.getStatusCode()
         );
+
+        if (!apiBucket.tryConsume(1)) {
+            log.warn("API rate limit exceeded");
+            return ResponseEntity.status(429).body("Too many requests - please slow down");
+        }
+
         orderAuditRepository.save(audit);
 
         OrderEvent event = new OrderEvent(
@@ -45,4 +56,6 @@ public class OrderController {
 
         return ResponseEntity.accepted().body("Order accepted");
     }
+
+
 }

@@ -1,14 +1,27 @@
 package com.example.ordernotifier.service;
 
 import com.example.ordernotifier.dto.OrderEvent;
+import io.github.bucket4j.Bucket;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class EmailNotificationService {
 
+    @Qualifier("emailBucket")
+    private final Bucket emailBucket;
+
+
     public void sendNotification(OrderEvent event) {
+
+        if (!emailBucket.tryConsume(1)) {
+            log.warn("Email rate limit exceeded");
+            throw new RuntimeException("Email rate limit exceeded");
+        }
 
         log.info("========== EMAIL MOCK ==========");
         log.info("TO:      {}", event.getRecipientEmail());
