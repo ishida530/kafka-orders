@@ -39,7 +39,7 @@ public class OrderAudit {
     private ProcessingStatus processingStatus = ProcessingStatus.RECEIVED;
 
     public enum ProcessingStatus {
-        RECEIVED, QUEUED, NOTIFIED, FAILED
+        RECEIVED, QUEUED, NOTIFIED, FAILED, REJECTED
     }
 
     public OrderAudit(String trackingNumber, String recipientEmail,

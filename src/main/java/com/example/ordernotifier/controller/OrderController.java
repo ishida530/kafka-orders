@@ -35,13 +35,14 @@ public class OrderController {
                 request.getSenderCountryCode(),
                 request.getStatusCode()
         );
+        orderAuditRepository.save(audit);
 
         if (!apiBucket.tryConsume(1)) {
             log.warn("API rate limit exceeded");
+            audit.setProcessingStatus(OrderAudit.ProcessingStatus.REJECTED);
+            orderAuditRepository.save(audit);
             return ResponseEntity.status(429).body("Too many requests - please slow down");
         }
-
-        orderAuditRepository.save(audit);
 
         OrderEvent event = new OrderEvent(
                 audit.getId(),
