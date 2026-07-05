@@ -29,6 +29,11 @@ public class OrderEventConsumer {
                 orderAuditRepository.save(audit);
             });
 
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Interrupted while waiting for email rate limit capacity: {}", event.getTrackingNumber());
+            throw new RuntimeException("Processing interrupted, will retry on redelivery", e);
+
         } catch (Exception e) {
             log.error("Failed to process event: {}", event.getTrackingNumber(), e);
             orderAuditRepository.findById(event.getAuditId()).ifPresent(audit -> {
