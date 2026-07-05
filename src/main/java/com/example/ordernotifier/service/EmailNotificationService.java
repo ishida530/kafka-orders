@@ -16,12 +16,9 @@ public class EmailNotificationService {
     private final Bucket emailBucket;
 
 
-    public void sendNotification(OrderEvent event) {
+    public void sendNotification(OrderEvent event) throws InterruptedException {
 
-        if (!emailBucket.tryConsume(1)) {
-            log.warn("Email rate limit exceeded");
-            throw new RuntimeException("Email rate limit exceeded");
-        }
+        emailBucket.asBlocking().consume(1);
 
         log.info("========== EMAIL MOCK ==========");
         log.info("TO:      {}", event.getRecipientEmail());
